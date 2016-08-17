@@ -6,14 +6,21 @@ import android.util.Log;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.firstonline.net.bean.Contributor;
+import com.firstonline.net.bean.GitHub;
+import com.firstonline.net.bean.GithubConverter;
+
 import java.io.IOException;
 import java.lang.ref.WeakReference;
+import java.util.List;
 
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
+import retrofit.GsonConverterFactory;
+import retrofit2.Retrofit;
 
 /**
  * Created by Administrator on 2016/8/13 0013.
@@ -45,20 +52,65 @@ public class NetUtil {
             @Override
             public void onResponse(Call call, final Response response) throws IOException {
 
-                NetUtil.response=response;
+               final String result=response.body().string();
                // Log.v("onResponse","response:"+response.body().string());
                 conRef.get().runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
                         Toast.makeText(conRef.get(), "onResponse:"+response, Toast.LENGTH_LONG).show();
-                        try {
-                            tv.setText("response:"+response.body().string());
-                        }catch (IOException e){
-                            e.printStackTrace();
-                        }
+                        tv.setText("response:"+result);
+
                     }
                 });
             }
         });
+    }
+
+    public static void HttpGetByRetrofit(Activity activity,String baseUrl,String owner,String repo){
+        conRef=new WeakReference(activity);
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(baseUrl)
+                .addConverterFactory(GithubConverter.factory)
+                //.addConverterFactory(GsonConverterFactory.create())
+                .build();
+        GitHub gitHub=retrofit.create(GitHub.class);
+        retrofit2.Call<String> call=gitHub.contributors("square","retrofit");
+
+        call.enqueue(new retrofit2.Callback<String>() {
+            @Override
+            public void onResponse(retrofit2.Call<String> call, retrofit2.Response<String> response) {
+                final String result=response.toString();
+                conRef.get().runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(conRef.get(), "onResponse:"+result, Toast.LENGTH_LONG).show();
+                    }
+                });
+            }
+
+            @Override
+            public void onFailure(retrofit2.Call<String> call, Throwable t) {
+                Toast.makeText(conRef.get(), "onFailure: get msg failed", Toast.LENGTH_LONG).show();
+            }
+        });
+
+        /*call.enqueue(new retrofit2.Callback<String>() {
+            @Override
+            public void onResponse(retrofit2.Call<String> call, final retrofit2.Response<String> response) {
+                final String result=response.toString();
+                conRef.get().runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(conRef.get(), "onResponse:"+result, Toast.LENGTH_LONG).show();
+                    }
+                });
+            }
+
+            @Override
+            public void onFailure(retrofit2.Call<List<Contributor>> call, Throwable t) {
+                Toast.makeText(conRef.get(), "onFailure: get msg failed", Toast.LENGTH_LONG).show();
+
+            }
+        });*/
     }
 }

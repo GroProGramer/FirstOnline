@@ -14,6 +14,7 @@ public class MainActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         tv=(TextView)findViewById(R.id.tv);
-        NetUtil.test("http://www.autohome.com.cn/",this,tv);
+       // NetUtil.test("http://www.autohome.com.cn/",this,tv);
+        NetUtil.HttpGetByRetrofit(this,"https://api.github.com","square","retrofit");
     }
 }
